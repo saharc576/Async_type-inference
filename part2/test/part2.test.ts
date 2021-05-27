@@ -2,8 +2,8 @@
 
 import chai, { expect } from 'chai'
 
-import { getAll, makePromisedStore, MISSING_KEY } from '../src/part2'
-//   asycMemo,
+import { getAll, makePromisedStore, asycMemo, MISSING_KEY } from '../src/part2'
+//   ,
 //   asyncWaterfallWithRetry,
 //   lazyFilter,
 //   lazyMap,
@@ -28,22 +28,26 @@ describe('2.1 (PromisedStore)', () => {
     const store = makePromisedStore()
     await store.set('a', 42)
     await store.set('b', 24)
-    //expect(await getAll(store, ['a', 'b'])).to.deep.equal([42, 24])
-    //expect(await getAll(store, ['b', 'a'])).to.deep.equal([24, 42])
+    expect(await getAll(store, ['a', 'b'])).to.deep.equal([42, 24])
+    expect(await getAll(store, ['b', 'a'])).to.deep.equal([24, 42])
     await expect(getAll(store, ['a', 'c', 'b'])).to.be.rejectedWith(MISSING_KEY)
   })
 })
 
-// describe('2.2 (asycMemo)', () => {
-//   it('memoizes calls', async () => {
-//     let ret = 'cached'
-//     const memo = asycMemo((x) => ret)
+describe('2.2 (asycMemo)', () => {
+  it('memoizes calls', async () => {
+    let ret = 'cached'
+    const memo = asycMemo((x) => ret)
+    expect(await memo('a')).to.equal('cached')
+    ret = 'new'
+    expect(await memo('a')).to.equal('cached')
+    expect(await memo('b')).to.equal('cached')
 
-//     expect(await memo('a')).to.equal('cached')
-//     ret = 'new'
-//     expect(await memo('a')).to.equal('cached')
-//   })
-// })
+    const memo2 = asycMemo((x: number) => x + 1)
+    expect(await memo2(1)).to.equal(2)
+    expect(await memo2(2)).to.equal(3)
+  })
+})
 
 // describe('2.3 (lazy generators)', () => {
 //   function* countTo4(): Generator<number> {

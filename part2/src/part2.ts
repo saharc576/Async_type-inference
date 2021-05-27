@@ -59,14 +59,54 @@ export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promis
     : concatPromises(pStore.get(keysList[0]), getAll(pStore, keysList.slice(1)))
 }
 
-//pStore.get(keysList[0])
-/* 2.2 */
+export async function singletonByStore<X, Y>(x: X, y: Y, store: PromisedStore<X, Y>): Promise<Y> {
+  return await store.get(x).then(
+    (res) => res,
+    (rej) => store.set(x, y).then((res) => store.get(x))
+  )
+}
 
-// ??? (you may want to add helper functions here)
-//
+/* 2.2 */
+export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
+  const store = makePromisedStore<T, R>()
+  return async (x: T) => {
+    // this function acts like if statement:
+    return await store.get(x).then(
+      // if [x][f(x)] is already exist than return (x) => const f(x)
+      (res) => res,
+      // else insert [x][f(x)] to the store and return (x) => const f(x)
+      (rej) => store.set(x, f(x)).then((res) => store.get(x))
+    )
+  }
+}
+
 // export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
-//     ???
-// }
+//   const store = makePromisedStore<T, R>()
+//   const storeF = makePromisedStore<(param: T) => R, (param: T) => R>()
+
+//   return async (x: T) => {
+//     return await storeF.get(f).then(
+//       (newf) =>
+//         store.get(x).then(
+//           // if [x][f(x)] is already exist than return (x) => const f(x)
+//           (res) => res,
+//           // else insert [x][f(x)] to the store and return (x) => const f(x)
+//           () => store.set(x, newf(x)).then(() => store.get(x))
+//         ),
+//       (fNotExists) =>
+//         storeF.set(f, f).then(() =>
+//           storeF.get(f).then((newf) =>
+//             store.get(x).then(
+//               // if [x][f(x)] is already exist than return (x) => const f(x)
+//               (res) => res,
+//               // else insert [x][f(x)] to the store and return (x) => const f(x)
+//               () => store.set(x, newf(x)).then(() => store.get(x))
+//             )
+//           )
+//         )
+//     )
+//   }
+//}
 
 /* 2.3 */
 

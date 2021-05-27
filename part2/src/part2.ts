@@ -45,15 +45,10 @@ export function makePromisedStore<K, V>(): PromisedStore<K, V> {
   }
 }
 
-export function concatPromises<V>(pA: Promise<V>, pArray: Promise<V[]>): Promise<V[]> {
-  const promise = pArray.then(
-    (res) => pA.then((v: V) => [v].concat(res)),
-    (rej) => {
-      console.log(pA)
-      return Promise.reject(MISSING_KEY)
-    }
-  )
-  return promise
+export function concatPromises<V, K>(pA: Promise<V>, pArray: Promise<V[]>): Promise<V[]> {
+  return pArray
+    .then((res) => pA.then((v: V) => [v].concat(res)))
+    .catch((reason) => Promise.reject(reason))
 }
 
 export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promise<V[]> {

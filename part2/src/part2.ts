@@ -3,31 +3,68 @@
 export const MISSING_KEY = '___MISSING___'
 
 type PromisedStore<K, V> = {
-    get(key: K): Promise<V>,
-    set(key: K, value: V): Promise<void>,
-    delete(key: K): Promise<void>
+  get(key: K): Promise<V>
+  set(key: K, value: V): Promise<void>
+  delete(key: K): Promise<void>
 }
 
+type Store<K, V> = {
+  keys: K[]
+  vals: V[]
+}
 
-// export function makePromisedStore<K, V>(): PromisedStore<K, V> {
-//     ???
-//     return {
-//         get(key: K) {
-//             ???
-//         },
-//         set(key: K, value: V) {
-//             ???
-//         },
-//         delete(key: K) {
-//             ???
-//         },
-//     }
-// }
+const makeEmptyStore = <K, V>(): Store<K, V> => ({ keys: [], vals: [] })
 
-// export function getAll<K, V>(store: PromisedStore<K, V>, keys: K[]): ??? {
-//     ???
-// }
+const swapAndPop = <K>(array: K[], index: number): void => {
+  array[index] = array[array.length - 1]
+  array.pop()
+}
 
+export function makePromisedStore<K, V>(): PromisedStore<K, V> {
+  const store = makeEmptyStore<K, V>()
+  return {
+    get(key: K) {
+      return store.keys.includes(key)
+        ? Promise.resolve(store.vals[store.keys.indexOf(key)])
+        : Promise.reject(MISSING_KEY)
+    },
+    set(key: K, value: V) {
+      store.keys.includes(key)
+        ? (store.vals[store.keys.indexOf(key)] = value)
+        : (store.keys.push(key), store.vals.push(value))
+
+      return Promise.resolve()
+    },
+    delete(key: K) {
+      store.keys.includes(key)
+        ? (swapAndPop(store.vals, store.keys.indexOf(key)),
+          swapAndPop(store.keys, store.keys.indexOf(key)))
+        : Promise.reject(MISSING_KEY)
+      return Promise.resolve()
+    },
+  }
+}
+
+export function concatPromises<V>(pA: Promise<V>, pArray: Promise<V[]>): Promise<V[]> {
+  const promise = pArray.then(
+    (res) => pA.then((v: V) => [v].concat(res)),
+    (rej) => {
+      console.log(pA)
+      return Promise.reject(MISSING_KEY)
+    }
+  )
+  return promise
+}
+
+export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promise<V[]> {
+  return keysList.length === 0
+    ? Promise.reject(MISSING_KEY)
+    : keysList.length === 1
+    ? pStore.get(keysList[0]).then((res) => [res])
+    : concatPromises(pStore.get(keysList[0]), getAll(pStore, keysList.slice(1)))
+}
+
+//pStore.get(keysList[0])
 /* 2.2 */
 
 // ??? (you may want to add helper functions here)

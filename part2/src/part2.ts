@@ -59,54 +59,49 @@ export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promis
     : concatPromises(pStore.get(keysList[0]), getAll(pStore, keysList.slice(1)))
 }
 
-export async function singletonByStore<X, Y>(x: X, y: Y, store: PromisedStore<X, Y>): Promise<Y> {
-  return await store.get(x).then(
+// export async function singletonByStore<X, Y>(x: X, y: Y, store: PromisedStore<X, Y>): Promise<Y> {
+//   return await store.get(x).then(
+//     (res) => res,
+//     (rej) => store.set(x, y).then((res) => store.get(x))
+//   )
+// }
+
+/* 2.2 singleton */
+export function singletonStore<X, Y>(x: X, y: Y, store: PromisedStore<X, Y>): Promise<Y> {
+  return store.get(x).then(
     (res) => res,
-    (rej) => store.set(x, y).then((res) => store.get(x))
+    (doesntExist) => store.set(x, y).then((voidReturned) => store.get(x).then((res) => res))
   )
 }
 
-/* 2.2 */
 export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
   const store = makePromisedStore<T, R>()
+  const functionStore = makePromisedStore<(param: T) => R, (param: T) => R>()
   return async (x: T) => {
-    // this function acts like if statement:
-    return await store.get(x).then(
-      // if [x][f(x)] is already exist than return (x) => const f(x)
-      (res) => res,
-      // else insert [x][f(x)] to the store and return (x) => const f(x)
-      (rej) => store.set(x, f(x)).then((res) => store.get(x))
-    )
+    const g = await singletonStore(f, f, functionStore)
+    return singletonStore(x, g(x), store)
   }
 }
 
-// export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
-//   const store = makePromisedStore<T, R>()
-//   const storeF = makePromisedStore<(param: T) => R, (param: T) => R>()
+/* 2.2 sub-functions*/
+export async function get<T, R>(key: T, store: PromisedStore<T, R>): Promise<R> {
+  return await store.get(key)
+}
+export async function set<T, R>(key: T, value: R, store: PromisedStore<T, R>): Promise<void> {
+  return await store.set(key, value)
+}
 
-//   return async (x: T) => {
-//     return await storeF.get(f).then(
-//       (newf) =>
-//         store.get(x).then(
-//           // if [x][f(x)] is already exist than return (x) => const f(x)
-//           (res) => res,
-//           // else insert [x][f(x)] to the store and return (x) => const f(x)
-//           () => store.set(x, newf(x)).then(() => store.get(x))
-//         ),
-//       (fNotExists) =>
-//         storeF.set(f, f).then(() =>
-//           storeF.get(f).then((newf) =>
-//             store.get(x).then(
-//               // if [x][f(x)] is already exist than return (x) => const f(x)
-//               (res) => res,
-//               // else insert [x][f(x)] to the store and return (x) => const f(x)
-//               () => store.set(x, newf(x)).then(() => store.get(x))
-//             )
-//           )
-//         )
-//     )
-//   }
-//}
+export function asycMemo2<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
+  const store = makePromisedStore<T, R>()
+  return (x: T) => {
+    return get(x, store)
+      .then((fx) => fx)
+      .catch((valueDoesntExists) => {
+        set(x, f(x), store)
+        return get(x, store)
+      })
+  }
+}
 
 /* 2.3 */
 

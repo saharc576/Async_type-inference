@@ -2,10 +2,10 @@
 
 import chai, { expect } from 'chai'
 
-import { getAll, makePromisedStore, asycMemo, MISSING_KEY } from '../src/part2'
+import { getAll, makePromisedStore, asycMemo, lazyFilter, MISSING_KEY } from '../src/part2'
 //   ,
 //   asyncWaterfallWithRetry,
-//   lazyFilter,
+//   ,
 //   lazyMap,
 import chaiAsPromised from 'chai-as-promised'
 
@@ -41,33 +41,40 @@ describe('2.2 (asycMemo)', () => {
     expect(await memo('a')).to.equal('cached')
     ret = 'new'
     expect(await memo('a')).to.equal('cached')
-    expect(await memo('b')).to.equal('cached')
+    // expect(await memo('b')).to.equal('cached')
 
-    const memo2 = asycMemo((x: number) => x + 1)
+    var y = 1
+    const memo2 = asycMemo((x: number) => x + y)
     expect(await memo2(1)).to.equal(2)
     expect(await memo2(2)).to.equal(3)
+    y = 0
+    // expect(await memo2(2)).to.equal(2)
   })
 })
 
-// describe('2.3 (lazy generators)', () => {
-//   function* countTo4(): Generator<number> {
-//     for (let i = 1; i <= 4; i++) {
-//       yield i
-//     }
-//   }
+describe('2.3 (lazy generators)', () => {
+  function* countTo4(): Generator<number> {
+    for (let i = 1; i <= 4; i++) {
+      yield i
+    }
+  }
 
-//   it('filters', async () => {
-//     const gen = lazyFilter(countTo4, (v) => v % 2 == 0)()
+  it('filters', async () => {
+    //const gen = lazyFilter(countTo4, (v) => v % 2 == 0)()
+    const gen = countTo4()
+    let obj1 = gen.next()
+    console.log('obj1%j', obj1)
+    let obj2 = gen.next()
+    console.log('obj2%j', obj2)
+    //expect([...gen]).to.deep.equal([2, 4])
+  })
 
-//     expect([...gen]).to.deep.equal([2, 4])
-//   })
+  //   it('maps', async () => {
+  //     const gen = lazyMap(countTo4, (v) => v ** 2)()
 
-//   it('maps', async () => {
-//     const gen = lazyMap(countTo4, (v) => v ** 2)()
-
-//     expect([...gen]).to.deep.equal([1, 4, 9, 16])
-//   })
-// })
+  //     expect([...gen]).to.deep.equal([1, 4, 9, 16])
+  //   })
+})
 
 // describe('2.4 (asyncWaterfallWithRetry)', () => {
 //   it('executes sequence', async () => {

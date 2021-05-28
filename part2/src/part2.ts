@@ -87,6 +87,7 @@ export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
 export async function get<T, R>(key: T, store: PromisedStore<T, R>): Promise<R> {
   return await store.get(key)
 }
+
 export async function set<T, R>(key: T, value: R, store: PromisedStore<T, R>): Promise<void> {
   return await store.set(key, value)
 }
@@ -104,10 +105,43 @@ export function asycMemo2<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
 }
 
 /* 2.3 */
+export function lazyFilter<T>(
+  genFn: () => Generator<T>,
+  filterFn: (x: T) => boolean
+): () => Generator<T> {
+  return function* name() {
+    for (let i = 1; i <= 4; i++) {
+      const x = genFn().next().value
+      yield x
+    }
+  }
+}
 
-// export function lazyFilter<T>(genFn: () => Generator<T>, filterFn: ???): ??? {
-//     ???
-// }
+// let obj = genFn().next()
+//     if (obj.done){
+//       yield genFn().next().value
+//     } else {
+//       while(!filterFn(obj.value)){
+//         const next = genFn().next()
+//         if (next.done){
+//             if (filterFn(next.value)){
+//                 yield next.value
+//             }
+//             else {
+//               yield next.value
+//             }
+//         }
+//         obj = next
+//       }
+
+//     }
+
+function* findNext(): Generator<number> {
+  for (let i = 1; i <= 4; i++) {
+    const x = 3
+    yield i
+  }
+}
 
 // export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ???): ??? {
 //     ???

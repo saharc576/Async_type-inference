@@ -60,13 +60,8 @@ describe('2.3 (lazy generators)', () => {
   }
 
   it('filters', async () => {
-    //const gen = lazyFilter(countTo4, (v) => v % 2 == 0)()
-    const gen = countTo4()
-    let obj1 = gen.next()
-    console.log('obj1%j', obj1)
-    let obj2 = gen.next()
-    console.log('obj2%j', obj2)
-    //expect([...gen]).to.deep.equal([2, 4])
+    const gen = lazyFilter(countTo4, (v) => v % 2 == 0)()
+    expect([...gen]).to.deep.equal([2, 4])
   })
 
   //   it('maps', async () => {

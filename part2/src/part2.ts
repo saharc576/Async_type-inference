@@ -109,42 +109,17 @@ export function lazyFilter<T>(
   genFn: () => Generator<T>,
   filterFn: (x: T) => boolean
 ): () => Generator<T> {
-  return function* name() {
-    for (let i = 1; i <= 4; i++) {
-      const x = genFn().next().value
-      yield x
+  return function* tmp() {
+    for (let gen of genFn()) {
+      if (filterFn(gen)) {
+        yield gen
+      }
     }
   }
-}
 
-// let obj = genFn().next()
-//     if (obj.done){
-//       yield genFn().next().value
-//     } else {
-//       while(!filterFn(obj.value)){
-//         const next = genFn().next()
-//         if (next.done){
-//             if (filterFn(next.value)){
-//                 yield next.value
-//             }
-//             else {
-//               yield next.value
-//             }
-//         }
-//         obj = next
-//       }
 
-//     }
-
-function* findNext(): Generator<number> {
-  for (let i = 1; i <= 4; i++) {
-    const x = 3
-    yield i
-  }
-}
-
-// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ???): ??? {
-//     ???
+// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ??: ?? {
+//  ???
 // }
 
 /* 2.4 */

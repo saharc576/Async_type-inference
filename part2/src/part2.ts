@@ -5,126 +5,100 @@ import { keys, reject } from "ramda"
 export const MISSING_KEY = '___MISSING___'
 
 type PromisedStore<K, V> = {
-    get(key: K): Promise<V>,
-    set(key: K, value: V): Promise<void>,
-    delete(key: K): Promise<void>
+  get(key: K): Promise<V>
+  set(key: K, value: V): Promise<void>
+  delete(key: K): Promise<void>
 }
 
-type Store<K,V> = {
-    keys: K[],
-    vals: V[]
+type Store<K, V> = {
+  keys: K[]
+  vals: V[]
 }
 
-const makeEmptyStore = <K,V> (): Store<K,V> => ({keys:[], vals:[]}) 
+const makeEmptyStore = <K, V>(): Store<K, V> => ({ keys: [], vals: [] })
 
-const swapAndPop = <K> (array:K[], index:number): void => {
-    array[index] = array[array.length -1]
-    array.pop()
+const swapAndPop = <K>(array: K[], index: number): void => {
+  array[index] = array[array.length - 1]
+  array.pop()
 }
 
 export function makePromisedStore<K, V>(): PromisedStore<K, V> {
-    const store = makeEmptyStore<K,V>();
-    return {
-        get(key: K) {
-            return store.keys.includes(key) ? Promise.resolve(store.vals[store.keys.indexOf(key)])
-                                            : Promise.reject(MISSING_KEY);
-        },
-        set(key: K, value: V) {
-            store.keys.includes(key) ? store.vals[store.keys.indexOf(key)] = value 
-                                    : (store.keys.push(key),
-                                        store.vals.push(value))
-            
-            return Promise.resolve();
-        },
-        delete(key: K) {
-            store.keys.includes(key) 
-            ? (swapAndPop(store.vals,store.keys.indexOf(key)),
-                swapAndPop(store.keys,store.keys.indexOf(key)))
-                : Promise.reject(MISSING_KEY);
-            return Promise.resolve();
-        },
-    }
+  const store = makeEmptyStore<K, V>()
+  return {
+    get(key: K) {
+      return store.keys.includes(key)
+        ? Promise.resolve(store.vals[store.keys.indexOf(key)])
+        : Promise.reject(MISSING_KEY)
+    },
+    set(key: K, value: V) {
+      store.keys.includes(key)
+        ? (store.vals[store.keys.indexOf(key)] = value)
+        : (store.keys.push(key), store.vals.push(value))
+
+      return Promise.resolve()
+    },
+    delete(key: K) {
+      store.keys.includes(key)
+        ? (swapAndPop(store.vals, store.keys.indexOf(key)),
+          swapAndPop(store.keys, store.keys.indexOf(key)))
+        : Promise.reject(MISSING_KEY)
+      return Promise.resolve()
+    },
+  }
 }
 
-// export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList:K[]):Promise<V[]> {
-//     const vals: V[] = [];
-//     const auxGetAll = (pStore: PromisedStore<K, V>, keysList:K[]): void => {
-//         keysList.length > 0 ? 
-//             (pStore.get(keysList[0])
-//                 .then((v: V) => {
-//                     console.log("%j", v);
-//                     vals.push(v);
-//                     console.log("vals are %j", vals);
+export function concatPromises<V, K>(pA: Promise<V>, pArray: Promise<V[]>): Promise<V[]> {
+  return pArray
+    .then((res) => pA.then((v: V) => [v].concat(res)))
+    .catch((reason) => Promise.reject(reason))
+}
 
-//                     auxGetAll(pStore, keysList.slice(1));
-//                 }).catch(() => [MISSING_KEY])) :vals
-//                 console.log("vals end case are %j", vals)
-//     }
-//     console.log("vals before call are %j", vals)
-//     auxGetAll(pStore, keysList);
-//     console.log("vals 0 case are %j", vals)
-//     return Promise.resolve(vals);
-// }
-
-// const auxGetAll = <K,V>(pStore: PromisedStore<K, V>, keysList:K[], vals: V[]): V[] => {
-//     keysList.length === 0 ? []
-//        : (pStore.get(keysList[0])
-//             .then((v: V) => {
-//                 vals.push(v);
-//                 auxGetAll(pStore, keysList.slice(1), vals);
-//             }).catch(() => [MISSING_KEY]));
-//     return vals; 
-// }
-
-/* 2.2 */
+export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promise<V[]> {
+  return keysList.length === 0
+    ? Promise.reject(MISSING_KEY)
+    : keysList.length === 1
+    ? pStore.get(keysList[0]).then((res) => [res])
+    : concatPromises(pStore.get(keysList[0]), getAll(pStore, keysList.slice(1)))
+}
 
 
-// const checkAndSet =  async <T,R>(store: PromisedStore<T,R>, param: T, f: (param: T) => R): Promise<R> => 
-//     store.get(param)
-//             .then(
-//                 ((res) => res),
-//                 ((rej) => {
-//                     const val = f(param);
-//                     store.set(param, val);
-//                     return val;
-//                 }))
-
-const checkAndSet =  async <T,R>(store: PromisedStore<T,R>, param: T, val: R): Promise<R> => 
-    store.get(param)
-            .then(
-                ((res) => res),
-                ((rej) => {
-                    store.set(param, val);
-                    return val;
-                }))
-
-const returnVal = <T,R>(f: (param: T) => R): (param: T) => R => 
-    (param: T) => f(param)
-
-
+/* 2.2 singleton */
+export function singletonStore<X, Y>(x: X, y: Y, store: PromisedStore<X, Y>): Promise<Y> {
+  return store.get(x).then(
+    (res) => res,
+    (doesntExist) => store.set(x, y).then((voidReturned) => store.get(x).then((res) => res))
+  )
+}
 
 export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
-    const store = makePromisedStore<T,R>();
-    const func = returnVal(f)
-    return async (x: T): Promise<R> => {
-        return await checkAndSet(store, x, func(x))
-    }
-    
-
-// export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
-//     const store = makePromisedStore<T,R>();
-//     const originalF = async (p: T) => f(p)
-
-//     return async (x: T): Promise<R> => {
-//         const val = f(x)
-//         return await checkAndSet(store, x, f)
-//     }
-    
-
-
-  
+  const store = makePromisedStore<T, R>()
+  const functionStore = makePromisedStore<(param: T) => R, (param: T) => R>()
+  return async (x: T) => {
+    const g = await singletonStore(f, f, functionStore)
+    return singletonStore(x, g(x), store)
+  }
 }
 
+/* 2.2 sub-functions*/
+export async function get<T, R>(key: T, store: PromisedStore<T, R>): Promise<R> {
+  return await store.get(key)
+}
+
+export async function set<T, R>(key: T, value: R, store: PromisedStore<T, R>): Promise<void> {
+  return await store.set(key, value)
+}
+
+export function asycMemo2<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
+  const store = makePromisedStore<T, R>()
+  return (x: T) => {
+    return get(x, store)
+      .then((fx) => fx)
+      .catch((valueDoesntExists) => {
+        set(x, f(x), store)
+        return get(x, store)
+      })
+  }
+}
 
 /* 2.3 */
 
@@ -133,23 +107,23 @@ export function lazyFilter<T>(genFn: () => Generator<T>, filterFn: (val: T) => b
         for (let gen of genFn()) {
             if (filterFn(gen)) {
                 yield gen
-            } 
+            }
         }
 
-        }
     }
+}
     
     
 
 
 
-// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ???): ??? {
-//     ???
+// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ??: ?? {
+//  ???
 // }
 
 /* 2.4 */
 // you can use 'any' in this question
 
-// export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...(???)[]]): Promise<any> {
-//     ???
-// }
+export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...(???)[]]): Promise<any> {
+    ???
+}

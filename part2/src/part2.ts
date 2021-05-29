@@ -128,8 +128,15 @@ export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: (val: T) => R): 
 /* 2.4 */
 // you can use 'any' in this question
 
-export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...(???)[]]): Promise<any> {
-    return fns.length === 1 ? 
+export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...((data:any) => Promise<any>)[]]): Promise<any> {
+
+  // const onFirstRej = (f: (data:any) => Promise<any>) : Promise<any> =>
+  // const onFirstRej = (f: (data:any) => Promise<any>) : Promise<any> =>
+  
+
+
+  
+  return fns.length === 1 ? 
         await fns[0]().then(
             (( res ) => res),
             (( rej ) => setTimeout(
@@ -138,13 +145,17 @@ export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...(???)
                                 (( res2 ) => res2),
                                 (( rej2 ) => rej2)), 2000) 
             )
-        ) : await fns[0]().then(
-            (( res ) => asyncWaterfallWithRetry(res)),
-            (( rej ) => setTimeout(
-                            await fns[0]()
+        ) : await fns[0]()
+        .then(
+            (( res ) =>  {fns[1](res); asyncWaterfallWithRetry()}),
+            (( rej ) => { const p = new Promise (function ( resolve, reject) {
+                          resolve()
+                        })
+                        setTimeout(
+                            
                             .then( 
                                 (( res2 ) => asyncWaterfallWithRetry(res2)),
-                                (( rej2 ) => rej2)), 2000) 
+                                (( rej2 ) => rej2)), 2000)} 
             )
     
     

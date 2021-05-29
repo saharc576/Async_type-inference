@@ -73,7 +73,7 @@ describe('2.3 (lazy generators)', () => {
 
 describe('2.4 (asyncWaterfallWithRetry)', () => {
   it('executes sequence', async () => {
-    const v:any = await asyncWaterfallWithRetry([async () => 1, async (v) => v + 1, async (v) => v * 2])
+    const v = await asyncWaterfallWithRetry([async () => 1, async (v) => v + 1, async (v) => v * 2])
     expect(v).to.equal(4)
   })
 

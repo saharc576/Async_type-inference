@@ -117,13 +117,48 @@ export function lazyFilter<T>(genFn: () => Generator<T>, filterFn: (val: T) => b
 
 
 
-// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ??: ?? {
-//  ???
-// }
+export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: (val: T) => R): () => Generator<R> {
+    return function* mapGen() {
+        for (let val of genFn()) {
+            yield mapFn(val);
+        }
+    }
+}
 
 /* 2.4 */
 // you can use 'any' in this question
 
 export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...(???)[]]): Promise<any> {
-    ???
+    return fns.length === 1 ? 
+        await fns[0]().then(
+            (( res ) => res),
+            (( rej ) => setTimeout(
+                            await fns[0]()
+                            .then( 
+                                (( res2 ) => res2),
+                                (( rej2 ) => rej2)), 2000) 
+            )
+        ) : await fns[0]().then(
+            (( res ) => asyncWaterfallWithRetry(res)),
+            (( rej ) => setTimeout(
+                            await fns[0]()
+                            .then( 
+                                (( res2 ) => asyncWaterfallWithRetry(res2)),
+                                (( rej2 ) => rej2)), 2000) 
+            )
+    
+    
+    
+    // asyncWaterfallWithRetry(fns.slice(1))   
+    
+    
+    
+    // await fns[0]().then(
+        //     (( res ) => res),
+        //     (( rej ) => setTimeout(fns[0]
+        //                             .then(), 2))
+        // )
+        
+    
+
 }

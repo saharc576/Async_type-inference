@@ -130,46 +130,125 @@ export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: (val: T) => R): 
 
 export async function asyncWaterfallWithRetry(fns: [() => Promise<any>, ...((data:any) => Promise<any>)[]]): Promise<any> {
 
-  // const onFirstRej = (f: (data:any) => Promise<any>) : Promise<any> =>
-  // const onFirstRej = (f: (data:any) => Promise<any>) : Promise<any> =>
-  
 
+  const rec = async (fns: [() => Promise<any>, ...((data:any) => Promise<any>)[]], index: number):  Promise<any> => {
+    if ( index === 0 ) {
+      const p = new Promise<any> (async (resolve, reject): Promise<any> => {
+        resolve = (data: any) => Promise.resolve(fns[0]())
+        reject = (reason: any) => {
+          setTimeout(() => {
+            const p2 = new Promise<any> (async (resolve, reject): Promise<any> => {
+              resolve = (data: any) => Promise.resolve(fns[0]())
+              reject = (reason: any) => {
+                setTimeout(() => {
+                  const p3 = new Promise<any> (async (resolve, reject): Promise<any> => {
+                    resolve = (data: any) => Promise.resolve(fns[0]())
+                    reject = (reason: any) => Promise.reject(reason)
+                return await p3
+                  })
+              }, 2000)
+          }
+        return await p2
+        })
+          }, 2000)
+        } 
+        return await p
+      })
+    return await p;
 
-  
-  return fns.length === 1 ? 
-        await fns[0]().then(
-            (( res ) => res),
-            (( rej ) => setTimeout(
-                            await fns[0]()
-                            .then( 
-                                (( res2 ) => res2),
-                                (( rej2 ) => rej2)), 2000) 
-            )
-        ) : await fns[0]()
-        .then(
-            (( res ) =>  {fns[1](res); asyncWaterfallWithRetry()}),
-            (( rej ) => { const p = new Promise (function ( resolve, reject) {
-                          resolve()
-                        })
-                        setTimeout(
-                            
-                            .then( 
-                                (( res2 ) => asyncWaterfallWithRetry(res2)),
-                                (( rej2 ) => rej2)), 2000)} 
-            )
-    
-    
-    
-    // asyncWaterfallWithRetry(fns.slice(1))   
-    
-    
-    
-    // await fns[0]().then(
-        //     (( res ) => res),
-        //     (( rej ) => setTimeout(fns[0]
-        //                             .then(), 2))
-        // )
-        
-    
-
+    } else {
+      const val = await rec(fns, index - 1);
+      const p = new Promise<any> (async (resolve, reject): Promise<any> => {
+        resolve = (data: any) => Promise.resolve(fns[0]())
+        reject = (reason: any) => {
+          setTimeout(() => {
+            const p2 = new Promise<any> (async (resolve, reject): Promise<any> => {
+              resolve = (data: any) => Promise.resolve(fns[0]())
+              reject = (reason: any) => {
+                setTimeout(() => {
+                  const p3 = new Promise<any> (async (resolve, reject): Promise<any> => {
+                    resolve = (data: any) => Promise.resolve(fns[0]())
+                    reject = (reason: any) => Promise.reject(reason)
+                return await p3
+                  })
+              }, 2000)
+          }
+        return await p2
+        })
+          }, 2000)
+        } 
+        return await p
+      })
+    return await p;
+    }
 }
+return await rec(fns, fns.length -1)
+}
+
+// const compose = (data: any, f: (data:any) => Promise<any>): Promise<any> => 
+//   f(data)
+
+
+
+
+
+// this implemtation works ONLY FIRST test
+
+// const rec = async (fns: [() => Promise<any>, ...((data:any) => Promise<any>)[]], index: number):  Promise<any> => {
+//     if ( index === 0 ) {
+//         const val = await fns[index]()
+//       .then(
+//             (( res ) => res),
+//           (async ( rej ) => 
+//           setTimeout(async () => await fns[0]()
+//                     .then(
+//                         ((res2) => res2),
+//                       (async (rej2) => 
+  
+//                       setTimeout(async () => fns[0]()
+//                                 .then(
+//                                     ((res3) => res3),
+//                                     ((rej3) => rej3)), 2000) )), 2000) 
+//             )
+//         )
+//         return val 
+//       } else {
+//           const val = await rec(fns, index - 1);
+//       console.log("rec() else -> val", val)
+  
+//       const toReturn = await fns[index](val)
+//         .then(
+//           (( res ) => res),
+//           (async ( rej ) => setTimeout(
+//                             async () => await fns[index](val)
+//                             .then( 
+//                                   (( res2 ) => {console.log("rec() in res2 -> val", val); res2;}),
+//                                   (async ( rej2 ) => setTimeout(
+        
+//                                                       async () => await fns[index](val)
+//                                                       .then( 
+//                                                             (( res3 ) => {console.log("rec() in res3 -> val", val); res3;}),
+//                                                             (( rej3 ) => rej3)), 2000))), 2000)
+//                 ))
+//         console.log("toReturn", toReturn)
+//         return toReturn
+//     }
+  
+  // }
+  // const onFirstRej = async (f0: () => Promise<any>, f: (data:any) => Promise<any>, index: number, prevRes: any) : Promise<any> => {
+  //   if (index === 0) {
+  //       return await f0()
+        
+  //   } else {    
+  //       return await f(prevRes)
+  //   }
+  // }
+  
+  // const onFirstRej = async (f0: () => Promise<any>, f: (data:any) => Promise<any>, index: number, prevRes: any) : Promise<any> => {
+  //   if (index === 0) {
+  //       return await f0()
+        
+  //   } else {    
+  //       return await f(prevRes)
+  //   }
+  // }

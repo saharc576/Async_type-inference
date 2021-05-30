@@ -123,7 +123,9 @@ export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: (val: T) => R): 
             yield mapFn(val);
         }
     }
-}
+  }
+
+
 
 /* 2.4 */
 // you can use 'any' in this question

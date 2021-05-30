@@ -116,11 +116,15 @@ export function lazyFilter<T>(
       }
     }
   }
+}
 
-
-// export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: ??: ?? {
-//  ???
-// }
+export function lazyMap<T, R>(genFn: () => Generator<T>, mapFn: (x: T) => R): () => Generator<R> {
+  return function* tmp() {
+    for (let gen of genFn()) {
+      yield mapFn(gen)
+    }
+  }
+}
 
 /* 2.4 */
 // you can use 'any' in this question

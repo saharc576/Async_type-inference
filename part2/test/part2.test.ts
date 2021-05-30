@@ -2,11 +2,11 @@
 
 import chai, { expect } from 'chai'
 
-import { getAll, makePromisedStore, asycMemo, lazyFilter, MISSING_KEY } from '../src/part2'
+import { getAll, makePromisedStore, asycMemo, lazyFilter, lazyMap, MISSING_KEY } from '../src/part2'
 //   ,
 //   asyncWaterfallWithRetry,
 //   ,
-//   lazyMap,
+//   ,
 import chaiAsPromised from 'chai-as-promised'
 
 chai.use(chaiAsPromised)
@@ -64,11 +64,11 @@ describe('2.3 (lazy generators)', () => {
     expect([...gen]).to.deep.equal([2, 4])
   })
 
-  //   it('maps', async () => {
-  //     const gen = lazyMap(countTo4, (v) => v ** 2)()
+  it('maps', async () => {
+    const gen = lazyMap(countTo4, (v) => v ** 2)()
 
-  //     expect([...gen]).to.deep.equal([1, 4, 9, 16])
-  //   })
+    expect([...gen]).to.deep.equal([1, 4, 9, 16])
+  })
 })
 
 // describe('2.4 (asyncWaterfallWithRetry)', () => {

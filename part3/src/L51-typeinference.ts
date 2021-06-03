@@ -204,6 +204,7 @@ export const typeofLet = (exp: A.LetExp, tenv: E.TEnv): Result<T.TExp> => {
     return bind(constraints, _ => typeofExps(exp.body, E.makeExtendTEnv(vars, varTEs, tenv)));
 };
 
+
 // Purpose: compute the type of a letrec-exp
 // We make the same assumption as in L4 that letrec only binds proc values.
 // Typing rule:
@@ -256,7 +257,8 @@ const typeofProgramExps = (exp: A.Exp, exps: A.Exp[], tenv: E.TEnv): Result<T.TE
     isEmpty(exps) ? typeofExp(exp, extandEnvIfDefine(exp,tenv)) 
                         : bind(typeofExp(exp, extandEnvIfDefine(exp,tenv)), () => typeofProgramExps(first(exps), rest(exps), extandEnvIfDefine(exp,tenv)))
 
-
+// Purpose: extend the environment if it is a define expression
+//          Auxillairy function for typeofProgramExps()
 const extandEnvIfDefine = (exp:A.Exp, tenv: E.TEnv): E.TEnv => 
     A.isDefineExp(exp)? E.makeExtendTEnv([exp.var.var], [exp.var.texp], tenv) : tenv
 
@@ -270,8 +272,6 @@ export const typeofLit = (exp: A.LitExp): Result<T.TExp> => {
         return makeOk(T.makeSymbolTExp(exp.val)) 
     }
     else if (V.isCompoundSExp(exp.val)){
-        console.log('exp %j', exp)
-        // need to check about val1 or val2?????
         return makeOk(T.makePairTExp())
     } else return makeFailure("Error")
 }
@@ -280,9 +280,7 @@ export const typeofLit = (exp: A.LitExp): Result<T.TExp> => {
 // Purpose: compute the type of a set! expression
 // Typing rule:
 //   (set! var val)
-// TODO - write the typing rule for set-exp
 export const typeofSet = (exp: A.SetExp, tenv: E.TEnv): Result<T.VoidTExp> => {
-    // find x -> check equals types -> bind like in define
     if (E.isExtendTEnv(tenv)) {
         if (tenv.vars.includes(exp.var.var)) {
             const index = tenv.vars.indexOf(exp.var.var);

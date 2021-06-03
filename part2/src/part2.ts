@@ -134,12 +134,12 @@ async function try3Times(f: (param: any) => Promise<any>, param: any): Promise<a
     try {
       val = await f(param);
       break;
-    } catch {
+    } catch (err) {
+      if (i === 2) {
+        throw err
+      }
       await wait();
     }
-  }
-  if (i === 3) {
-    throw new Error(MISSING_KEY);
   }
   return await val;
 }

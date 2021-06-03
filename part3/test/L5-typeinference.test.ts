@@ -8,78 +8,78 @@ import { makeOk, bind, isFailure } from '../shared/result';
 import { parse as p } from "../shared/parser";
 
 describe('L5 Type Inference', () => {
-//     describe('inferTypeOf', () => {
-//         it('infers the type of atoms', () => {
-//             expect(inferTypeOf("5")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf("#t")).to.deep.equal(makeOk("boolean"));
-//         });
+    describe('inferTypeOf', () => {
+        it('infers the type of atoms', () => {
+            expect(inferTypeOf("5")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf("#t")).to.deep.equal(makeOk("boolean"));
+        });
 
-//         it('infers the type of primitive procedures', () => {
-//             expect(inferTypeOf("+")).to.deep.equal(makeOk("(number * number -> number)"));
-//             expect(inferTypeOf("-")).to.deep.equal(makeOk("(number * number -> number)"));
-//             expect(inferTypeOf("*")).to.deep.equal(makeOk("(number * number -> number)"));
-//             expect(inferTypeOf("/")).to.deep.equal(makeOk("(number * number -> number)"));
-//             expect(inferTypeOf("=")).to.deep.equal(makeOk("(number * number -> boolean)"));
-//             expect(inferTypeOf("<")).to.deep.equal(makeOk("(number * number -> boolean)"));
-//             expect(inferTypeOf(">")).to.deep.equal(makeOk("(number * number -> boolean)"));
-//             expect(inferTypeOf("not")).to.deep.equal(makeOk("(boolean -> boolean)"));
-//         });
+        it('infers the type of primitive procedures', () => {
+            expect(inferTypeOf("+")).to.deep.equal(makeOk("(number * number -> number)"));
+            expect(inferTypeOf("-")).to.deep.equal(makeOk("(number * number -> number)"));
+            expect(inferTypeOf("*")).to.deep.equal(makeOk("(number * number -> number)"));
+            expect(inferTypeOf("/")).to.deep.equal(makeOk("(number * number -> number)"));
+            expect(inferTypeOf("=")).to.deep.equal(makeOk("(number * number -> boolean)"));
+            expect(inferTypeOf("<")).to.deep.equal(makeOk("(number * number -> boolean)"));
+            expect(inferTypeOf(">")).to.deep.equal(makeOk("(number * number -> boolean)"));
+            expect(inferTypeOf("not")).to.deep.equal(makeOk("(boolean -> boolean)"));
+        });
 
-//         it("infers the type of primitive op applications", () => {
-//             expect(inferTypeOf("(+ 1 2)")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf("(- 1 2)")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf("(* 1 2)")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf("(/ 1 2)")).to.deep.equal(makeOk("number"));
+        it("infers the type of primitive op applications", () => {
+            expect(inferTypeOf("(+ 1 2)")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf("(- 1 2)")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf("(* 1 2)")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf("(/ 1 2)")).to.deep.equal(makeOk("number"));
 
-//             expect(inferTypeOf("(= 1 2)")).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf("(< 1 2)")).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf("(> 1 2)")).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf("(= 1 2)")).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf("(< 1 2)")).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf("(> 1 2)")).to.deep.equal(makeOk("boolean"));
 
-//             expect(inferTypeOf("(not (< 1 2))")).to.deep.equal(makeOk("boolean"));
-//         });
+            expect(inferTypeOf("(not (< 1 2))")).to.deep.equal(makeOk("boolean"));
+        });
 
-//         it('infers the type of generic primitive op application', () => {
-//             expect(inferTypeOf("(eq? 1 2)")).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(string=? "a" "b")')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(number? 1)')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(boolean? "a")')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(string? "a")')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(symbol? "a")')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(list? "a")')).to.deep.equal(makeOk("boolean"));
-//             expect(inferTypeOf('(pair? "a")')).to.deep.equal(makeOk("boolean"));
-//         });
+        it('infers the type of generic primitive op application', () => {
+            expect(inferTypeOf("(eq? 1 2)")).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(string=? "a" "b")')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(number? 1)')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(boolean? "a")')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(string? "a")')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(symbol? "a")')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(list? "a")')).to.deep.equal(makeOk("boolean"));
+            expect(inferTypeOf('(pair? "a")')).to.deep.equal(makeOk("boolean"));
+        });
 
-//         it('infers the type of a VarRef in a given TEnv', () => {
-//             expect(bind(bind(p("x"), parseL5Exp), (exp: Exp) => typeofExp(exp, makeExtendTEnv(["x"], [makeNumTExp()], makeEmptyTEnv())))).to.deep.equal(makeOk(makeNumTExp()));
-//         });
+        it('infers the type of a VarRef in a given TEnv', () => {
+            expect(bind(bind(p("x"), parseL5Exp), (exp: Exp) => typeofExp(exp, makeExtendTEnv(["x"], [makeNumTExp()], makeEmptyTEnv())))).to.deep.equal(makeOk(makeNumTExp()));
+        });
 
-//         it('infers the type of "if" expressions', () => {
-//             expect(inferTypeOf("(if (> 1 2) 1 2)")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf("(if (= 1 2) #t #f)")).to.deep.equal(makeOk("boolean"));
-//         });
+        it('infers the type of "if" expressions', () => {
+            expect(inferTypeOf("(if (> 1 2) 1 2)")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf("(if (= 1 2) #t #f)")).to.deep.equal(makeOk("boolean"));
+        });
 
-//         it('infers the type of procedures', () => {
-//             expect(inferTypeOf("(lambda ((x : number)) : number x)")).to.deep.equal(makeOk("(number -> number)"));
-//             expect(inferTypeOf("(lambda ((x : number)) : boolean (> x 1))")).to.deep.equal(makeOk("(number -> boolean)"));
-//             expect(inferTypeOf("(lambda((x : number)) : (number -> number) (lambda((y : number)) : number (* y x)))")).to.deep.equal(makeOk("(number -> (number -> number))"));
-//             expect(inferTypeOf("(lambda((f : (number -> number))) : number (f 2))")).to.deep.equal(makeOk("((number -> number) -> number)"));
-//             expect(inferTypeOf("(lambda((x : number)) : number (let (((y : number) x)) (+ x y)))")).to.deep.equal(makeOk("(number -> number)"));
-//         });
+        it('infers the type of procedures', () => {
+            expect(inferTypeOf("(lambda ((x : number)) : number x)")).to.deep.equal(makeOk("(number -> number)"));
+            expect(inferTypeOf("(lambda ((x : number)) : boolean (> x 1))")).to.deep.equal(makeOk("(number -> boolean)"));
+            expect(inferTypeOf("(lambda((x : number)) : (number -> number) (lambda((y : number)) : number (* y x)))")).to.deep.equal(makeOk("(number -> (number -> number))"));
+            expect(inferTypeOf("(lambda((f : (number -> number))) : number (f 2))")).to.deep.equal(makeOk("((number -> number) -> number)"));
+            expect(inferTypeOf("(lambda((x : number)) : number (let (((y : number) x)) (+ x y)))")).to.deep.equal(makeOk("(number -> number)"));
+        });
 
-//         it('infers the type of "let" expressions', () => {
-//             expect(inferTypeOf("(let (((x : number) 1)) (* x 2))")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf(`(let (((x : number) 1)
-//                                       ((y : number) 2))
-//                                   (lambda((a : number)) : number (+ (* x a) y)))`)).to.deep.equal(makeOk("(number -> number)"));
-//         });
+        it('infers the type of "let" expressions', () => {
+            expect(inferTypeOf("(let (((x : number) 1)) (* x 2))")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf(`(let (((x : number) 1)
+                                      ((y : number) 2))
+                                  (lambda((a : number)) : number (+ (* x a) y)))`)).to.deep.equal(makeOk("(number -> number)"));
+        });
 
-//         it('infers the type of "letrec" expressions', () => {
-//             expect(inferTypeOf("(letrec (((p1 : (number -> number)) (lambda((x : number)) : number (* x x)))) p1)")).to.deep.equal(makeOk("(number -> number)"));
-//             expect(inferTypeOf("(letrec (((p1 : (number -> number)) (lambda((x : number)) : number (* x x)))) (p1 2))")).to.deep.equal(makeOk("number"));
-//             expect(inferTypeOf(`(letrec (((odd? : (number -> boolean)) (lambda((n : number)) : boolean (if (= n 0) #f (even? (- n 1)))))
-//                                          ((even? : (number -> boolean)) (lambda((n : number)) : boolean (if (= n 0) #t (odd? (- n 1))))))
-//                                   (odd? 12))`)).to.deep.equal(makeOk("boolean"));
-//         });
+        it('infers the type of "letrec" expressions', () => {
+            expect(inferTypeOf("(letrec (((p1 : (number -> number)) (lambda((x : number)) : number (* x x)))) p1)")).to.deep.equal(makeOk("(number -> number)"));
+            expect(inferTypeOf("(letrec (((p1 : (number -> number)) (lambda((x : number)) : number (* x x)))) (p1 2))")).to.deep.equal(makeOk("number"));
+            expect(inferTypeOf(`(letrec (((odd? : (number -> boolean)) (lambda((n : number)) : boolean (if (= n 0) #f (even? (- n 1)))))
+                                         ((even? : (number -> boolean)) (lambda((n : number)) : boolean (if (= n 0) #t (odd? (- n 1))))))
+                                  (odd? 12))`)).to.deep.equal(makeOk("boolean"));
+        });
 
         it('infers the type of "define" expressions as "void"', () => {
             expect(inferTypeOf("(define (foo : number) 5)")).to.deep.equal(makeOk("void"));
@@ -89,17 +89,17 @@ describe('L5 Type Inference', () => {
         });
     })
 
-//         it('infers the type of polymorphic functions', () => {
-//             expect(inferTypeOf("(lambda((x : T1)) : T1 x)")).to.deep.equal(makeOk("(T1 -> T1)"));
-//             expect(inferTypeOf(`(let (((x : number) 1))
-//                                   (lambda((y : T) (z : T)) : T
-//                                     (if (> x 2) y z)))`)).to.deep.equal(makeOk("(T * T -> T)"));
-//         });
+        it('infers the type of polymorphic functions', () => {
+            expect(inferTypeOf("(lambda((x : T1)) : T1 x)")).to.deep.equal(makeOk("(T1 -> T1)"));
+            expect(inferTypeOf(`(let (((x : number) 1))
+                                  (lambda((y : T) (z : T)) : T
+                                    (if (> x 2) y z)))`)).to.deep.equal(makeOk("(T * T -> T)"));
+        });
 
-//         it('infers the type of parameter-less procedures', () => {
-//             expect(inferTypeOf("(lambda () : number 1)")).to.deep.equal(makeOk("(Empty -> number)"));
-//         });
-//     });
+        it('infers the type of parameter-less procedures', () => {
+            expect(inferTypeOf("(lambda () : number 1)")).to.deep.equal(makeOk("(Empty -> number)"));
+        });
+    });
 
     describe('typeOfExp', () => {
         it('infers return type', () => {
@@ -185,27 +185,27 @@ describe('L5 Type Inference', () => {
         
         
         it('infers the type of primitives car, cdr, cons', () => {
-            const program1 = 
-            `(L5 (define x 'a)
-            (cons x x))`;
-            expect(verifyTeOfExprWithInference(program1, `cons`)).to.deep.equal(makeOk(true));
+            // const program1 = 
+            // `(L5 (define x 'a)
+            // (cons x x))`;
+            // expect(verifyTeOfExprWithInference(program1, `cons`)).to.deep.equal(makeOk(true));
             
-        })}) // to delete
-//             const program2 = 
-//             `(L5 (define x '(a b))
-//                  (car x))`;
-//             expect(verifyTeOfExprWithInference(program2, `T`)).to.deep.equal(makeOk(true));
+            const program2 = 
+            `(L5 (define x '(a b))
+                    (car x))`;
+            expect(verifyTeOfExprWithInference(program2, `T`)).to.deep.equal(makeOk(true));
 
-//             const program3 = 
-//             `(L5 (define x '(a b))
-//                  (cdr x))`;
-//             expect(verifyTeOfExprWithInference(program3, `T`)).to.deep.equal(makeOk(true));
+            const program3 = 
+            `(L5 (define x '(a b))
+                    (cdr x))`;
+            expect(verifyTeOfExprWithInference(program3, `T`)).to.deep.equal(makeOk(true));
 
-//             const program4 = 
-//             `(L5 (define x 'a)
-//                  (car x))`;
-//             expect(verifyTeOfExprWithInference(program4, `T`)).to.satisfy(isFailure);
-
+            const program4 = 
+            `(L5 (define x 'a)
+                    (car x))`;
+            expect(verifyTeOfExprWithInference(program4, `T`)).to.satisfy(isFailure);
+            
+        }) // to delete
 //             const program5 = 
 //             `(L5 (define x 'a)
 //                  (cdr x))`;
@@ -371,4 +371,4 @@ describe('L5 Type Inference', () => {
 //             expect(verifyTeOfExprWithInference(program9, expected9)).to.deep.equal(makeOk(true));
 //         });
 //     });
-// });
+});

@@ -95,6 +95,9 @@ export const typeofPrim = (p: PrimOp): Result<TExp> =>
     (p.op === 'string=?') ? parseTE('(T1 * T2 -> boolean)') :
     (p.op === 'display') ? parseTE('(T -> void)') :
     (p.op === 'newline') ? parseTE('(Empty -> void)') :
+    (p.op === 'cons') ? parseTE('(T1 * T2 -> cons') :
+    (p.op === 'car') ? parseTE('(cons -> T)') :
+    (p.op === 'cdr') ? parseTE('(cons -> T)') :
     makeFailure(`Primitive not yet implemented: ${p.op}`);
 
 // Purpose: compute the type of an if-exp
@@ -199,11 +202,24 @@ export const typeofLetrec = (exp: LetrecExp, tenv: TEnv): Result<TExp> => {
 //   (define (var : texp) val)
 // Not implemented
 export const typeofDefine = (exp: DefineExp, tenv: TEnv): Result<VoidTExp> => {
-    return makeOk(makeVoidTExp());
+    const constraint =  bind (typeofExp(exp.val, tenv), (val_texp: TExp) => checkEqualType(exp.var.texp, val_texp, exp))
+    return bind(constraint, (t: true) => makeOk(makeVoidTExp()))
 };
 
 // Purpose: compute the type of a program
 // Typing rule:
 // Not implemented: Thread the TEnv (as in L1)
 export const typeofProgram = (exp: Program, tenv: TEnv): Result<TExp> =>
-    makeFailure("Not implemented");
+    // similar to typeofExps but threads variables into tenv after define-exps
+    isEmpty(exp.exps) ? makeFailure("Empty program") :
+    typeofProgramExps(first(exp.exps), rest(exp.exps), tenv);
+
+
+const typeofProgramExps = (exp: Exp, exps: Exp[], tenv: TEnv): Result<TExp> => 
+    isEmpty(exps) ? typeofExp(exp, extandEnvIfDefine(exp,tenv)) 
+                        : bind(typeofExp(exp, extandEnvIfDefine(exp,tenv)), () => typeofProgramExps(first(exps), rest(exps), extandEnvIfDefine(exp,tenv)))
+
+// Purpose: extend the environment if it is a define expression
+//          Auxillairy function for typeofProgramExps()
+const extandEnvIfDefine = (exp:Exp, tenv: TEnv): TEnv => 
+    isDefineExp(exp)? makeExtendTEnv([exp.var.var], [exp.var.texp], tenv) : tenv

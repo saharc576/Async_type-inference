@@ -185,10 +185,10 @@ describe('L5 Type Inference', () => {
         
         
         it('infers the type of primitives car, cdr, cons', () => {
-            // const program1 = 
-            // `(L5 (define x 'a)
-            // (cons x x))`;
-            // expect(verifyTeOfExprWithInference(program1, `cons`)).to.deep.equal(makeOk(true));
+            const program1 = 
+            `(L5 (define x 'a)
+            (cons x x))`;
+            expect(verifyTeOfExprWithInference(program1, `cons`)).to.deep.equal(makeOk(true));
             
             const program2 = 
             `(L5 (define x '(a b))
@@ -205,28 +205,34 @@ describe('L5 Type Inference', () => {
                     (car x))`;
             expect(verifyTeOfExprWithInference(program4, `T`)).to.satisfy(isFailure);
             
-        }) // to delete
-//             const program5 = 
-//             `(L5 (define x 'a)
-//                  (cdr x))`;
-//             expect(verifyTeOfExprWithInference(program5, `T`)).to.satisfy(isFailure);
-//         });
+            const program5 = 
+            `(L5 (define x 'a)
+            (cdr x))`;
+            expect(verifyTeOfExprWithInference(program5, `T`)).to.satisfy(isFailure);
+        });
 
-//         it('infers the type of class', () => {
-//             expect(verifyTeOfExprWithInference("(class : c1 ((field1 : number)) ((get (lambda () : number field1))))", 
-//                                                "(number -> (class cell (get : (Empty -> number))))")).to.deep.equal(makeOk(true));
-//         });
+        // it('infers the type of class', () => {
+        //     expect(verifyTeOfExprWithInference("(class : c1 ((field1 : number)) ((get (lambda () : number field1))))", 
+        //                                        "(number -> (class cell (get : (Empty -> number))))")).to.deep.equal(makeOk(true));
+        // });
 
-//         it('infers the type of a class constructor', () => {
-//             const program1 = 
-//             `(L5 (define pair (class : pair 
-//                                 ((f : T) 
-//                                  (r : T))
-//                                 ((first (lambda () f)) 
-//                                  (rest (lambda () r)))))
-//                  (pair 1 2)
-//                  pair)`;
-//             expect(verifyTeOfExprWithInference(program1, `(number * number -> (class pair (first : (Empty -> number)) (rest : (Empty -> number))))`)).to.deep.equal(makeOk(true));
+        // it('infers the type of a class constructor', () => {
+        //     const program1 = 
+        //     `(L5 (define pair (class : pair 
+        //                         ((f : T) 
+        //                          (r : T))
+        //                         ((first (lambda () f)) 
+        //                          (rest (lambda () r)))))
+        //          (pair 1 2)
+        //          pair)`;
+        //     expect(verifyTeOfExprWithInference(program1, `(number * number -> (class pair (first : (Empty -> number)) (rest : (Empty -> number))))`)).to.deep.equal(makeOk(true));
+    
+    
+       it('infers the type of class', () => {
+            expect(verifyTeOfExprWithInference("(class : c1 ((field1 : number)) ((get (lambda () : number field1))))", 
+                                               "(number -> (class cell (get : (Empty -> number))))")).to.deep.equal(makeOk(true));
+        
+    }) // to delete
 
 //             const program2 = 
 //             `(L5 (define pair (class : pair 

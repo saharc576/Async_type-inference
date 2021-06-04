@@ -6,9 +6,10 @@ import * as TC from "./L51-typecheck";
 import * as V from "../imp/L5-value";
 import * as E from "../imp/TEnv";
 import * as T from "./TExp51";
-import { allT, first, rest, isEmpty } from "../shared/list";
+import { allT, first, rest, isEmpty, cons } from "../shared/list";
 import { isNumber, isString } from '../shared/type-predicates';
 import { Result, makeFailure, makeOk, bind, safe2, zipWithResult, mapResult, isOk } from "../shared/result";
+import { env } from "process";
 
 // Purpose: Make type expressions equivalent by deriving a unifier
 // Return an error if the types are not unifiable.
@@ -102,9 +103,13 @@ const checkNoOccurrence = (tvar: T.TVar, te: T.TExp, exp: A.Exp): Result<true> =
 // so that the user defined types are known to the type inference system.
 // For each class (class : typename ...) add a pair <class.typename classTExp> to TEnv
 export const makeTEnvFromClasses = (parsed: A.Parsed): E.TEnv => {
-    // TODO makeTEnvFromClasses
-    return E.makeEmptyTEnv();
+    const classExpsArr = A.parsedToClassExps(parsed);
+ 
+    const classTexpsArr = R.map(A.classExpToClassTExp, classExpsArr);
+    const emptyEnv = E.makeEmptyTEnv();
+    return E.makeExtendTEnv(R.map((currClass: A.ClassExp) => currClass.typeName.var, classExpsArr), classTexpsArr, emptyEnv)
 }
+
 
 // Purpose: Compute the type of a concrete expression
 export const inferTypeOf = (concreteExp: string): Result<string> =>
@@ -302,6 +307,77 @@ export const typeofSet = (exp: A.SetExp, tenv: E.TEnv): Result<T.VoidTExp> => {
 //      ...
 //      type<method_k>(class-tenv) = mk
 // Then type<class(type fields methods)>(tend) = = [t1 * ... * tn -> type]
+
+// export const typeofClass = (exp: A.ClassExp, tenv: E.TEnv): Result<T.TExp> => {
+//     const classTE = A.classExpToClassTExp(exp);
+//     const methods = T.classTExpMethods(classTE);
+    // const methodsTE_res = bind(mapResult((m) => T.classTExpMethodTExp(classTE, m), methods), (methodType) => makeOk(methodType))
+//     const mConstrains = bind(methodsTE_res, (methodType) => 
+//                         bind(checkEqualType(methodType, ), methods), () => ))
+// };
+
 export const typeofClass = (exp: A.ClassExp, tenv: E.TEnv): Result<T.TExp> => {
-    return makeFailure("TODO typeofClass");
-};
+    console.log('startENV %j', tenv)
+    console.log('\n\n')
+
+    const fTypes = R.map((f) => f.texp, exp.fields)
+    const fVars = R.map((f) => f.var, exp.fields)
+
+    const classTE = A.classExpToClassTExp(exp);
+    console.log("class TE %j" , classTE)
+    const methods = T.classTExpMethods(classTE);
+    console.log("methods %j" , methods)
+
+
+    const methodsTE_res = bind(mapResult((m) => T.classTExpMethodTExp(classTE, m), methods), (methodType) => makeOk(methodType))
+    console.log("methods TE %j" , methodsTE_res)
+
+    const all = T.classTExpComponents(classTE)
+    console.log("class all TE %j" , all)
+
+
+
+
+    
+    const vars = R.map((m) => m.var.var, exp.methods)
+    const vals = R.map((m) => m.val, exp.methods)
+    const varTEs = R.map((m) => m.var.texp, exp.methods)
+  
+    const extTEnv = E.makeExtendTEnv(
+      R.map((f) => f.var, exp.fields),
+      fTypes,
+      tenv
+    )
+
+    
+    console.log('extTEnv %j', extTEnv)
+    console.log('\n\n')
+  
+    const Mconstraints = zipWithResult(
+      (varTE, val) =>
+        bind(typeofExp(val, extTEnv), (valTE: T.TExp) => checkEqualType(varTE, valTE, exp)),
+      varTEs,
+      vals
+    )
+    return bind(Mconstraints, (_) => makeOk(A.classExpToClassTExp(exp)))
+  }
+
+    // const fields = R.map((f)=> f.texp,exp.fields)
+    // const vars = R.map((m) => m.var.var, exp.methods);
+    // const vals = R.map((m) => m.val, exp.methods);
+    // const varTEs = R.map((m) => m.var.texp, exp.methods);
+    // const constraints = zipWithResult((varTE, val) => bind(typeofExp(val, tenv),
+    //                                                        (valTE: T.TExp) => checkEqualType(varTE, valTE, exp)),
+    //                                 varTEs, vals);
+    // return bind(constraints, _ => typeofExps(fields, E.makeExtendTEnv(vars, varTEs, tenv)));
+
+// then type<let ((var1 val1) .. (varn valn)) body>(tenv) = t
+
+//     const vars = R.map((b) => b.var.var, exp.bindings);
+//     const vals = R.map((b) => b.val, exp.bindings);
+//     const varTEs = R.map((b) => b.var.texp, exp.bindings);
+//     const constraints = zipWithResult((varTE, val) => bind(typeofExp(val, tenv),
+//                                                            (valTE: T.TExp) => checkEqualType(varTE, valTE, exp)),
+//                                       varTEs, vals);
+//     return bind(constraints, _ => typeofExps(exp.body, E.makeExtendTEnv(vars, varTEs, tenv)));
+// };

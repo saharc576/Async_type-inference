@@ -8,7 +8,7 @@ import * as E from "../imp/TEnv";
 import * as T from "./TExp51";
 import { allT, first, rest, isEmpty } from "../shared/list";
 import { isNumber, isString } from '../shared/type-predicates';
-import { Result, makeFailure, makeOk, bind, safe2, zipWithResult, mapResult } from "../shared/result";
+import { Result, makeFailure, makeOk, bind, safe2, zipWithResult, mapResult, isOk } from "../shared/result";
 
 // Purpose: Make type expressions equivalent by deriving a unifier
 // Return an error if the types are not unifiable.
@@ -204,6 +204,7 @@ export const typeofLet = (exp: A.LetExp, tenv: E.TEnv): Result<T.TExp> => {
     return bind(constraints, _ => typeofExps(exp.body, E.makeExtendTEnv(vars, varTEs, tenv)));
 };
 
+
 // Purpose: compute the type of a letrec-exp
 // We make the same assumption as in L4 that letrec only binds proc values.
 // Typing rule:
@@ -227,7 +228,7 @@ export const typeofLetrec = (exp: A.LetrecExp, tenv: E.TEnv): Result<T.TExp> => 
     const tis = R.map((proc) => proc.returnTE, procs);
     const tenvBody = E.makeExtendTEnv(ps, R.zipWith((tij, ti) => T.makeProcTExp(tij, ti), tijs, tis), tenv);
     const tenvIs = R.zipWith((params, tij) => E.makeExtendTEnv(R.map((p) => p.var, params), tij, tenvBody),
-                             paramss, tijs);
+    paramss, tijs);
     // Unfortunately ramda.zipWith does not work with 3 params
     const types = zipWithResult((bodyI, tenvI) => typeofExps(bodyI, tenvI), bodies, tenvIs)
     const constraints = bind(types, (types: T.TExp[]) => zipWithResult((typeI, ti) => checkEqualType(typeI, ti, exp), types, tis))
@@ -238,9 +239,9 @@ export const typeofLetrec = (exp: A.LetrecExp, tenv: E.TEnv): Result<T.TExp> => 
 // Purpose: compute the type of a define
 // Typing rule:
 //   (define (var : texp) val)
-// TODO - write the typing rule for define-exp
 export const typeofDefine = (exp: A.DefineExp, tenv: E.TEnv): Result<T.VoidTExp> => {
-    return makeFailure('TODO typeofDefine');
+    const constraint =  bind (typeofExp(exp.val, tenv), (val_texp: T.TExp) => checkEqualType(exp.var.texp, val_texp, exp))
+    return bind(constraint, (t: true) => makeOk(T.makeVoidTExp()))
 };
 
 // Purpose: compute the type of a program
@@ -251,23 +252,47 @@ export const typeofProgram = (exp: A.Program, tenv: E.TEnv): Result<T.TExp> =>
     isEmpty(exp.exps) ? makeFailure("Empty program") :
     typeofProgramExps(first(exp.exps), rest(exp.exps), tenv);
 
+
 const typeofProgramExps = (exp: A.Exp, exps: A.Exp[], tenv: E.TEnv): Result<T.TExp> => 
-    makeFailure('TODO typeofProgramExps');
+    isEmpty(exps) ? typeofExp(exp, extandEnvIfDefine(exp,tenv)) 
+                        : bind(typeofExp(exp, extandEnvIfDefine(exp,tenv)), () => typeofProgramExps(first(exps), rest(exps), extandEnvIfDefine(exp,tenv)))
+
+// Purpose: extend the environment if it is a define expression
+//          Auxillairy function for typeofProgramExps()
+const extandEnvIfDefine = (exp:A.Exp, tenv: E.TEnv): E.TEnv => 
+    A.isDefineExp(exp)? E.makeExtendTEnv([exp.var.var], [exp.var.texp], tenv) : tenv
 
 
 // Purpose: compute the type of a literal expression
 //      - Only need to cover the case of Symbol and Pair
 //      - for a symbol - record the value of the symbol in the SymbolTExp
 //        so that precise type checking can be made on ground symbol values.
-export const typeofLit = (exp: A.LitExp): Result<T.TExp> =>
-    makeFailure(`TODO typeofLit`);
+export const typeofLit = (exp: A.LitExp): Result<T.TExp> => {
+    if (V.isSymbolSExp(exp.val)){
+        return makeOk(T.makeSymbolTExp(exp.val)) 
+    }
+    else if (V.isCompoundSExp(exp.val)){
+        return makeOk(T.makePairTExp())
+    } else return makeFailure("Error")
+}
+    
 
 // Purpose: compute the type of a set! expression
 // Typing rule:
 //   (set! var val)
-// TODO - write the typing rule for set-exp
 export const typeofSet = (exp: A.SetExp, tenv: E.TEnv): Result<T.VoidTExp> => {
-    return makeFailure('TODO typeofSet');
+    if (E.isExtendTEnv(tenv)) {
+        if (tenv.vars.includes(exp.var.var)) {
+            const index = tenv.vars.indexOf(exp.var.var);
+            const res = bind(typeofExp(exp.val, tenv), (type: T.TExp) => makeOk(type === tenv.texps[index]))
+            return makeOk(T.makeVoidTExp())
+        }
+        else {
+            return typeofSet(exp, tenv.tenv)
+        }
+    } else {
+        return makeFailure("Error")
+    }
 };
 
 // Purpose: compute the type of a class-exp(type fields methods)

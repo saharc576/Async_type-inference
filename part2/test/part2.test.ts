@@ -94,7 +94,6 @@ describe('2.4 (asyncWaterfallWithRetry)', () => {
     const v = await asyncWaterfallWithRetry([
       async () => 1,
       async (v) => {
-        console.log("in test -> function 2, attempt " , attempt)
         if (attempt == 3) return v + 1
         attempt += 1
         throw Error()

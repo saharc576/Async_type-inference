@@ -462,9 +462,12 @@ export const parsedToClassExps = (p: Parsed): ClassExp[] =>
 
 export const rec = (exp: Exp, otherExps:Exp[], soFar:ClassExp[]) : ClassExp[] =>{
     return otherExps.length === 0 
-    ? isClassExp(exp) ? soFar.concat(exp) : soFar 
-    : isClassExp(exp) ? rec(first(otherExps), rest(otherExps), soFar.concat(exp)) 
-                      : rec(first(otherExps), rest(otherExps), soFar)
+    ? isClassExp(exp) 
+        ? soFar.concat(exp) 
+        : soFar 
+    : isClassExp(exp) 
+        ? rec(first(otherExps), rest(otherExps), soFar.concat(exp)) 
+        : rec(first(otherExps), rest(otherExps), soFar)
 }
 
 // L51 

@@ -338,7 +338,7 @@ const parseClassExp = (params: Sexp[]): Result<ClassExp> =>
 const parseGoodClassExp = (typeName: Sexp, varDecls: Sexp, bindings: Sexp): Result<ClassExp> => 
     isGoodBindings(bindings) && isString(typeName) 
     ? safe2((fields: VarDecl[], methods: Binding[]) => makeOk(makeClassExp(makeTVar(typeName), fields, methods)))
-    (mapResult(parseVarDecl, isArray(varDecls) ? varDecls : [varDecls]), parseBindings(bindings))
+        (mapResult(parseVarDecl, isArray(varDecls) ? varDecls : [varDecls]), parseBindings(bindings))
     : isString(typeName) ? makeFailure("Class: not good bindings")
                          : makeFailure("Type name is not a valid string")
 

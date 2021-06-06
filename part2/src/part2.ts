@@ -1,7 +1,4 @@
 /* 2.1 */
-
-import { keys, reject } from "ramda"
-
 export const MISSING_KEY = '___MISSING___'
 
 type PromisedStore<K, V> = {
@@ -62,26 +59,25 @@ export function getAll<K, V>(pStore: PromisedStore<K, V>, keysList: K[]): Promis
 }
 
 
-/* 2.2 sub-functions*/
-export async function get<T, R>(key: T, store: PromisedStore<T, R>): Promise<R> {
-  return await store.get(key)
-}
+/* 2.2 */
+const checkAndSet =  async <T,R>(store: PromisedStore<T,R>, param: T, val: R): Promise<R> => 
+    store.get(param)
+            .then(
+                ((res) => res),
+                ((rej) => {
+                    store.set(param, val);
+                    return val;
+                }))
 
-export async function set<T, R>(key: T, value: R, store: PromisedStore<T, R>): Promise<void> {
-  return await store.set(key, value)
-}
 
 export function asycMemo<T, R>(f: (param: T) => R): (param: T) => Promise<R> {
-  const store = makePromisedStore<T, R>()
-  return (x: T) => {
-    return get(x, store)
-      .then((fx) => fx)
-      .catch((valueDoesntExists) => {
-        set(x, f(x), store)
-        return get(x, store)
-      })
+    const store = makePromisedStore<T,R>();
+    
+    return async (x: T): Promise<R> => {
+        return await checkAndSet(store, x, f(x))
+    }
   }
-}
+    
 
 /* 2.3 */
 

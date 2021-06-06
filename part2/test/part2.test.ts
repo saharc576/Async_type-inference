@@ -41,14 +41,6 @@ describe('2.2 (asycMemo)', () => {
     expect(await memo('a')).to.equal('cached')
     ret = 'new'
     expect(await memo('a')).to.equal('cached')
-    // expect(await memo('b')).to.equal('cached')
-
-    var y = 1
-    const memo2 = asycMemo((x: number) => x + y)
-    expect(await memo2(1)).to.equal(2)
-    expect(await memo2(2)).to.equal(3)
-    y = 0
-    // expect(await memo2(2)).to.equal(2)
   })
 })
 

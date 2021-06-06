@@ -200,7 +200,6 @@ export const typeofLetrec = (exp: LetrecExp, tenv: TEnv): Result<TExp> => {
 // Purpose: compute the type of a define
 // Typing rule:
 //   (define (var : texp) val)
-// Not implemented
 export const typeofDefine = (exp: DefineExp, tenv: TEnv): Result<VoidTExp> => {
     const constraint =  bind (typeofExp(exp.val, tenv), (val_texp: TExp) => checkEqualType(exp.var.texp, val_texp, exp))
     return bind(constraint, (t: true) => makeOk(makeVoidTExp()))
@@ -210,9 +209,9 @@ export const typeofDefine = (exp: DefineExp, tenv: TEnv): Result<VoidTExp> => {
 // Typing rule:
 // Not implemented: Thread the TEnv (as in L1)
 export const typeofProgram = (exp: Program, tenv: TEnv): Result<TExp> =>
-    // similar to typeofExps but threads variables into tenv after define-exps
-    isEmpty(exp.exps) ? makeFailure("Empty program") :
-    typeofProgramExps(first(exp.exps), rest(exp.exps), tenv);
+    isEmpty(exp.exps) 
+    ? makeFailure("Empty program") 
+    : typeofProgramExps(first(exp.exps), rest(exp.exps), tenv);
 
 
 const typeofProgramExps = (exp: Exp, exps: Exp[], tenv: TEnv): Result<TExp> => 
